@@ -4,68 +4,52 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: laravel-docker
+    container_name: marketplace-app
     volumes:
-      - ./laravel_app:/var/www/html
+      - ./marketplace_app:/var/www/html
     environment:
       DB_CONNECTION: mysql
       DB_HOST: mysql
-      DB_DATABASE: laravel-db
-      DB_USERNAME: laravel
+      DB_DATABASE: marketplace_db
+      DB_USERNAME: marketplace
       DB_PASSWORD: secret
     depends_on:
       - mysql
     networks:
-      - laravel
+      - marketplace
 
   # Nginx Service
   nginx:
     image: nginx:alpine
-    container_name: laravel-nginx
+    container_name: marketplace-nginx
     ports:
-      - "8000:80"
+      - "8010:80"
     volumes:
-      - ./laravel_app:/var/www/html
+      - ./marketplace_app:/var/www/html
       - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - app
     networks:
-      - laravel
+      - marketplace
 
   # MySQL Service
   mysql:
     image: mysql:8
-    container_name: laravel_mysql
+    container_name: marketplace_mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: laravel-db
-      MYSQL_USER: laravel
+      MYSQL_DATABASE: marketplace_db
+      MYSQL_USER: marketplace
       MYSQL_PASSWORD: secret
     ports:
-      - "3307:3306"
+      - "3310:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - marketplace_mysql_data:/var/lib/mysql
     networks:
-      - laravel
-
-  # PhpMyAdmin Service
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: laravel_phpmyadmin
-    restart: always
-    ports:
-      - "8001:80"
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      MYSQL_ROOT_PASSWORD: root
-    depends_on:
-      - mysql
-    networks:
-      - laravel
+      - marketplace
 
 networks:
-  laravel:
+  marketplace:
 
 volumes:
-  mysql_data:
+  marketplace_mysql_data:
