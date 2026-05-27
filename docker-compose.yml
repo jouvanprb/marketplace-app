@@ -42,7 +42,7 @@ services:
       MYSQL_USER: marketplace
       MYSQL_PASSWORD: secret
     ports:
-      - "3310:3306"
+      - "3310:3306" 
     volumes:
       - marketplace_mysql_data:/var/lib/mysql
     networks:

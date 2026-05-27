@@ -1,0 +1,17 @@
+# Dependencies
+vendor/
+node_modules/
+
+# Environment
+.env
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
