@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Livewire\Volt\Volt;
 
 // PUBLIC ROUTES 
 Route::get('/', function () {
@@ -9,6 +10,13 @@ Route::get('/', function () {
 
 // AUTH ROUTES (BREEZE) 
 require __DIR__.'/auth.php';
+
+Route::post('/logout', function (\Illuminate\Http\Request $request) {
+    Auth::guard('web')->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect('/');
+})->name('logout')->middleware('auth');
 
 // CUSTOMER ROUTES 
 Route::middleware(['auth', 'role:customer'])->group(function () {
@@ -19,23 +27,28 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/orders', function () {
         return view('customer.orders');
     })->name('customer.orders');
+
+    Route::get('/profile', function () {
+        return view('profile');
+    })->name('profile'); 
+});
+
+// ADMIN AUTH ROUTES
+Route::middleware('guest')->prefix('admin')->name('admin.')->group(function () {
+    Volt::route('/login', 'pages.auth.admin-login')->name('login');
 });
 
 // ADMIN ROUTES 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     
-    Route::get('/categories', function () {
-        return view('admin.categories.index');
-    })->name('categories.index');
+    // Categories
+    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
     
-    Route::get('/products', function () {
-        return view('admin.products.index');
-    })->name('products.index');
+    // Products
+    Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
     
-    Route::get('/orders', function () {
-        return view('admin.orders.index');
-    })->name('orders.index');
+    // Orders
+    Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show']);
+    Route::patch('orders/{order}/status', [\App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
 });
