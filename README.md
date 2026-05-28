@@ -1,4 +1,4 @@
-# Johen Gaming - Web Top-Up & Storefront Game
+# Gaming Marketplace - Web Top-Up & Storefront Game
 
 Aplikasi web untuk top-up game dan storefront bertema gelap/glassmorphic. Dibuat menggunakan Laravel 11, aplikasi ini mendukung guest checkout (pembelian tanpa login), pelacakan transaksi otomatis, dan integrasi pembayaran Midtrans.
 
@@ -239,7 +239,7 @@ Buka `.env` and atur database serta konfigurasi Midtrans Sandbox Anda:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=johen_gaming_db
+DB_DATABASE=gaming_db
 DB_USERNAME=root
 DB_PASSWORD=your_password
 
