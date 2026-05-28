@@ -15,9 +15,18 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
         $middleware->redirectTo(
-            guests: '/login',
+            guests: function (\Illuminate\Http\Request $request) {
+                if ($request->is('admin') || $request->is('admin/*')) {
+                    abort(404);
+                }
+                return '/login';
+            },
             users: '/'
         );
+        
+        $middleware->validateCsrfTokens(except: [
+            'payment/notification',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

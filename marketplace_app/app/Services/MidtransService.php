@@ -47,6 +47,11 @@ class MidtransService
                 'email' => $customerEmail,
                 'phone' => $customerPhone,
             ],
+            'expiry' => [
+                'start_time' => date('Y-m-d H:i:s O'),
+                'duration' => 15,
+                'unit' => 'minute',
+            ],
             'callbacks' => [
                 'finish' => route('payment.finish'),
                 'unfinish' => route('payment.unfinish'),

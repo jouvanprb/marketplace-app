@@ -66,11 +66,15 @@
             <div class="space-y-4">
                 <div>
                     <p class="text-xs text-zinc-500 mb-1">Name</p>
-                    <p class="text-sm text-zinc-200 font-medium">{{ $order->user->name }}</p>
+                    <p class="text-sm text-zinc-200 font-medium">{{ $order->user->name ?? $order->payment_details['customer_details']['first_name'] ?? 'Guest Customer' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-zinc-500 mb-1">Email</p>
-                    <p class="text-sm text-zinc-200 font-medium">{{ $order->user->email }}</p>
+                    <p class="text-sm text-zinc-200 font-medium">{{ $order->user->email ?? $order->payment_details['customer_details']['email'] ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-zinc-500 mb-1">Phone (WhatsApp)</p>
+                    <p class="text-sm text-zinc-200 font-medium">{{ $order->payment_details['customer_details']['phone'] ?? 'N/A' }}</p>
                 </div>
             </div>
         </div>
@@ -89,27 +93,12 @@
                 <p class="text-xs text-zinc-500 mt-2">Last updated: {{ $order->updated_at->diffForHumans() }}</p>
             </div>
             
-            <form action="{{ route('admin.orders.update-status', $order) }}" method="POST">
-                @csrf
-                @method('PATCH')
-                <div class="mb-4">
-                    <label for="status" class="block text-xs font-medium text-zinc-400 mb-2">Change Status</label>
-                    <div class="relative">
-                        <select name="status" id="status" class="w-full bg-[#0a0a0a] border border-[#1f1f22] rounded-md px-3.5 py-2 text-sm text-[#ececf1] focus:outline-none focus:border-[#52525b] appearance-none transition-colors cursor-pointer">
-                            <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="paid" {{ $order->status == 'paid' ? 'selected' : '' }}>Paid</option>
-                            <option value="failed" {{ $order->status == 'failed' ? 'selected' : '' }}>Failed</option>
-                            <option value="expired" {{ $order->status == 'expired' ? 'selected' : '' }}>Expired</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </div>
-                    </div>
+            <div class="pt-4 border-t border-zinc-800/50 space-y-3">
+                <div>
+                    <p class="text-xs text-zinc-500 mb-1">Payment Method</p>
+                    <p class="text-sm text-zinc-300 font-semibold font-mono uppercase">{{ $order->payment_method ?? 'Midtrans Checkout' }}</p>
                 </div>
-                <button type="submit" class="w-full btn-primary-admin py-2 text-sm">
-                    Apply Status
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 </div>

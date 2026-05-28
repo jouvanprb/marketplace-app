@@ -25,7 +25,7 @@
                 @forelse($orders as $order)
                 <tr>
                     <td class="px-6 py-4 font-medium text-zinc-300">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</td>
-                    <td class="px-6 py-4 text-zinc-300">{{ $order->user->name }}</td>
+                    <td class="px-6 py-4 text-zinc-300">{{ $order->user->name ?? $order->payment_details['customer_details']['first_name'] ?? 'Guest Customer' }}</td>
                     <td class="px-6 py-4 text-zinc-500">{{ $order->items->count() }} items</td>
                     <td class="px-6 py-4 text-[#ececf1] font-medium">Rp {{ number_format($order->total_price ?? 0, 0, ',', '.') }}</td>
                     <td class="px-6 py-4">

@@ -117,6 +117,52 @@ class CheckoutController extends Controller
     }
 
     /**
+     * Handle Midtrans asynchronous notification (Webhook)
+     */
+    public function notification(Request $request)
+    {
+        $serverKey = config('midtrans.server_key');
+        
+        $orderId = $request->input('order_id');
+        $statusCode = $request->input('status_code');
+        $grossAmount = $request->input('gross_amount');
+        $signatureKey = $request->input('signature_key');
+        
+        // Formulate double-checking signature verification key
+        $localSignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
+        
+        if ($signatureKey !== $localSignature) {
+            return response()->json(['message' => 'Invalid signature key'], 403);
+        }
+        
+        $order = Order::where('order_code', $orderId)->first();
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+        
+        $transactionStatus = $request->input('transaction_status');
+        $paymentType = $request->input('payment_type');
+        
+        if ($transactionStatus == 'capture') {
+            if ($paymentType == 'credit_card') {
+                if ($request->input('fraud_status') == 'challenge') {
+                    $order->update(['status' => 'pending']);
+                } else {
+                    $order->update(['status' => 'paid', 'payment_method' => $paymentType]);
+                }
+            }
+        } elseif ($transactionStatus == 'settlement') {
+            $order->update(['status' => 'paid', 'payment_method' => $paymentType]);
+        } elseif ($transactionStatus == 'pending') {
+            $order->update(['status' => 'pending']);
+        } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+            $order->update(['status' => 'failed']);
+        }
+        
+        return response()->json(['message' => 'Webhook notification processed successfully']);
+    }
+
+    /**
      * Display order receipt
      */
     public function receipt($order_code)
