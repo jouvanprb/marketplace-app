@@ -66,4 +66,43 @@ class FrontController extends Controller
 
         return view('front.show', compact('product', 'relatedProducts'));
     }
+
+    /**
+     * Show the track order form or logged-in user's transaction history
+     */
+    public function trackIndex()
+    {
+        if (auth()->check()) {
+            $orders = \App\Models\Order::with('items.product')
+                ->where('user_id', auth()->id())
+                ->latest()
+                ->get();
+
+            return view('front.track', compact('orders'));
+        }
+
+        return view('front.track');
+    }
+
+    /**
+     * Handle the tracking form submission for guests
+f     */
+    public function trackSearch(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+        ]);
+
+        $phone = trim($request->phone);
+        $orders = \App\Models\Order::with('items.product')
+            ->where('payment_details->customer_details->phone', $phone)
+            ->latest()
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return back()->with('error', 'No transaction history found for this phone number. Please check your number.')->withInput();
+        }
+
+        return view('front.track', compact('orders', 'phone'));
+    }
 }

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/johen.png') }}">
+
     <title>@yield('title', config('app.name', 'Marketplace'))</title>
 
     <!-- Fonts -->
@@ -81,6 +84,12 @@
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search game..." 
                                class="w-full bg-[#111113] border border-zinc-800/80 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition-all placeholder-zinc-500 shadow-inner">
                     </form>
+
+                    <!-- Track Order Link -->
+                    <a href="{{ route('track.index') }}" class="text-zinc-400 hover:text-white text-xs font-semibold px-4 py-2 hover:bg-zinc-900/40 rounded-xl transition-all duration-200 ml-4 flex items-center gap-1.5">
+                        <i class="fas fa-search-dollar text-orange-500"></i>
+                        Track Order
+                    </a>
                 </div>
 
                 <!-- Right Side Nav -->
@@ -102,12 +111,9 @@
                                         My Account
                                     </a>
                                 @endif
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-300 transition-colors">
-                                        Sign Out
-                                    </button>
-                                </form>
+                                <a href="{{ route('logout') }}" class="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-300 transition-colors">
+                                    Sign Out
+                                </a>
                             </div>
                         </div>
                     @else
@@ -130,6 +136,7 @@
         <div x-show="mobileMenuOpen" x-transition style="display: none;" class="md:hidden bg-[#09090b] border-b border-zinc-800">
             <div class="px-2 pt-2 pb-3 space-y-1">
                 <a href="{{ route('home') }}" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-zinc-900">Home</a>
+                <a href="{{ route('track.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:text-white hover:bg-zinc-900">Track Order</a>
             </div>
             <div class="pt-4 pb-3 border-t border-zinc-800">
                 @auth
@@ -145,10 +152,9 @@
                         @else
                             <a href="{{ route('profile') }}" class="block px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:text-white hover:bg-zinc-800">My Account</a>
                         @endif
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-400 hover:text-red-300 hover:bg-zinc-800">Sign Out</button>
-                        </form>
+                        <a href="{{ route('logout') }}" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-400 hover:text-red-300 hover:bg-zinc-800">
+                            Sign Out
+                        </a>
                     </div>
                 @else
                     <div class="px-4 flex flex-col gap-2">
@@ -173,6 +179,7 @@
                     <a href="{{ route('home') }}" class="inline-block mb-4">
                         <img src="{{ asset('images/johen.png') }}" alt="Logo" class="h-8 w-auto object-contain">
                     </a>
+                    <h3 class="text-white font-semibold mb-4">Johen Gaming Store</h3>
                     <p class="text-zinc-500 text-sm mb-4">The ultimate destination for premium game accounts and fast, reliable top-ups.</p>
                     <div class="flex space-x-4">
                         <a href="#" class="text-zinc-500 hover:text-white transition-colors"><i class="fab fa-discord"></i></a>

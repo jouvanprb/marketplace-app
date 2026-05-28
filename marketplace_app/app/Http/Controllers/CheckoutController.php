@@ -80,13 +80,11 @@ class CheckoutController extends Controller
                 'status' => 'paid',
                 'payment_method' => $request->payment_type ?? 'midtrans',
             ]);
+            
+            return redirect()->route('order.receipt', ['order_code' => $order->order_code])->with('success', 'Payment successful!');
         }
 
-        if (auth()->check()) {
-            return redirect()->route('dashboard')->with('success', 'Payment successful!');
-        }
-
-        return redirect()->route('home')->with('success', 'Payment successful! Your order has been placed.');
+        return redirect()->route('home')->with('success', 'Payment processed successfully!');
     }
 
     /**
@@ -94,11 +92,13 @@ class CheckoutController extends Controller
      */
     public function unfinish(Request $request)
     {
-        if (auth()->check()) {
-            return redirect()->route('dashboard')->with('warning', 'Payment pending. Please complete your payment.');
+        $order = Order::where('order_code', $request->order_id)->first();
+        
+        if ($order) {
+            return redirect()->route('order.receipt', ['order_code' => $order->order_code])->with('warning', 'Payment pending.');
         }
 
-        return redirect()->route('home')->with('warning', 'Payment pending. Please complete your payment.');
+        return redirect()->route('home')->with('warning', 'Payment pending.');
     }
 
     /**
@@ -106,10 +106,23 @@ class CheckoutController extends Controller
      */
     public function error(Request $request)
     {
-        if (auth()->check()) {
-            return redirect()->route('dashboard')->with('error', 'Payment failed. Please try again.');
+        $order = Order::where('order_code', $request->order_id)->first();
+        
+        if ($order) {
+            $order->update(['status' => 'failed']);
+            return redirect()->route('order.receipt', ['order_code' => $order->order_code])->with('error', 'Payment failed.');
         }
 
-        return redirect()->route('home')->with('error', 'Payment failed. Please try again.');
+        return redirect()->route('home')->with('error', 'Payment failed.');
+    }
+
+    /**
+     * Display order receipt
+     */
+    public function receipt($order_code)
+    {
+        $order = Order::where('order_code', $order_code)->firstOrFail();
+        
+        return view('payment.receipt', compact('order'));
     }
 }

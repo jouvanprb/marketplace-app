@@ -10,16 +10,18 @@ use App\Http\Controllers\CheckoutController;
 Route::get('/', [FrontController::class, 'index'])->name('home');
 Route::get('/game/{slug}', [FrontController::class, 'game'])->name('game.show');
 Route::get('/product/{id}', [FrontController::class, 'show'])->name('product.show');
+Route::get('/track-order', [FrontController::class, 'trackIndex'])->name('track.index');
+Route::post('/track-order', [FrontController::class, 'trackSearch'])->name('track.search');
 
 // AUTH ROUTES (BREEZE) 
 require __DIR__.'/auth.php';
 
-Route::post('/logout', function (\Illuminate\Http\Request $request) {
+Route::match(['get', 'post'], '/logout', function (\Illuminate\Http\Request $request) {
     Auth::guard('web')->logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
-    return redirect('/');
-})->name('logout')->middleware('auth');
+    return redirect()->route('home');
+})->name('logout');
 
 // CUSTOMER ROUTES 
 Route::middleware(['auth', 'role:customer'])->group(function () {
@@ -77,3 +79,4 @@ Route::post('/checkout/{product}', [CheckoutController::class, 'store'])->name('
 Route::get('/payment/finish', [CheckoutController::class, 'finish'])->name('payment.finish');
 Route::get('/payment/unfinish', [CheckoutController::class, 'unfinish'])->name('payment.unfinish');
 Route::get('/payment/error', [CheckoutController::class, 'error'])->name('payment.error');
+Route::get('/order/receipt/{order_code}', [CheckoutController::class, 'receipt'])->name('order.receipt');

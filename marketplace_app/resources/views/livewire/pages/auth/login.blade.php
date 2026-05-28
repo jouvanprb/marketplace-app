@@ -23,7 +23,7 @@ new #[Layout('layouts.guest')] class extends Component
          if (auth()->user()->isAdmin()) {
             $this->redirectIntended(default: route('admin.dashboard', absolute: false), navigate: true);
         } else {
-            $this->redirectIntended(default: route('profile', absolute: false), navigate: true);
+            $this->redirectIntended(default: route('home', absolute: false), navigate: true);
         }
     }
 }; ?>

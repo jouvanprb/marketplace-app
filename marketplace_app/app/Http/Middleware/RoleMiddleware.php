@@ -24,7 +24,7 @@ class RoleMiddleware
             if ($request->user()->isAdmin()) {
                 return redirect()->route('admin.dashboard');
             }
-            return redirect()->route('dashboard');
+            return redirect()->route('home');
         }
 
         return $next($request);

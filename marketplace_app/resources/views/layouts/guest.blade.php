@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/johen.png') }}">
+
     <title>{{ config('app.name', 'GameStore') }} - @yield('title', 'Authentication')</title>
 
     <!-- Fonts -->
@@ -149,7 +152,7 @@
             <a href="/" class="inline-flex items-center space-x-2 text-white font-semibold text-xl tracking-tight mb-2" wire:navigate>
                 <img src="{{ asset('images/johen.png') }}" alt="Logo" class="h-10 w-auto object-contain">
             </a>
-            <p class="text-[10px] text-[#8f8f9d] uppercase tracking-widest mt-2">Login Authentication</p>
+            <p class="text-[10px] text-[#8f8f9d] uppercase tracking-widest mt-2">Johen Gaming Store</p>
         </div>
 
         <!-- Card -->

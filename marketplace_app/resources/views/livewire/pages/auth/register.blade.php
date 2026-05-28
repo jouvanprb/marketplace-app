@@ -32,7 +32,7 @@ new #[Layout('layouts.guest')] class extends Component
 
         Auth::login($user);
         
-        $this->redirect(route('profile', absolute: false), navigate: true);
+        $this->redirect(route('home', absolute: false), navigate: true);
     }
 }; ?>
 
@@ -158,24 +158,6 @@ new #[Layout('layouts.guest')] class extends Component
             <div class="absolute inset-0 flex items-center">
                 <div class="w-full border-t border-[#1f1f22]"></div>
             </div>
-            <div class="relative flex justify-center text-[10px] uppercase tracking-wider">
-                <span class="px-2 text-[#8f8f9d] bg-[#0a0a0a]">Or Sign Up With</span>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-            <button 
-                type="button" 
-                class="btn-secondary-gaming py-2 flex justify-center items-center text-xs"
-            >
-                <i class="fab fa-google mr-2"></i>Google
-            </button>
-            <button 
-                type="button" 
-                class="btn-secondary-gaming py-2 flex justify-center items-center text-xs"
-            >
-                <i class="fab fa-discord mr-2"></i>Discord
-            </button>
         </div>
 
         <!-- Login Link -->
