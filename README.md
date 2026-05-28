@@ -1,6 +1,6 @@
-# Gaming Marketplace - Web Top-Up & Storefront Game
+# Web Top-Up & Storefront Game
 
-Aplikasi web untuk top-up game dan storefront bertema gelap/glassmorphic. Dibuat menggunakan Laravel 11, aplikasi ini mendukung guest checkout (pembelian tanpa login), pelacakan transaksi otomatis, dan integrasi pembayaran Midtrans.
+Aplikasi web untuk top-up game dan jual beli akun. Dibuat menggunakan Laravel 11, aplikasi ini mendukung guest checkout , pelacakan transaksi otomatis, dan integrasi pembayaran Midtrans.
 
 ---
 
@@ -11,6 +11,7 @@ Aplikasi web untuk top-up game dan storefront bertema gelap/glassmorphic. Dibuat
 *   **Frontend:** Tailwind CSS, Alpine.js, dan FontAwesome 6
 *   **Database:** MySQL / MariaDB
 *   **Payment Gateway:** Midtrans Snap API & Webhooks
+*   **Containerization:** Docker & Docker Compose
 
 ---
 
@@ -209,66 +210,61 @@ if ($signatureKey !== $localSignature) {
     return response()->json(['message' => 'Invalid signature key'], 403);
 }
 ```
-If the signature is not valid, the request is rejected with `403 Forbidden` status.
+Jika tanda tangan tidak valid, request langsung ditolak dengan status `403 Forbidden`.
 
 ---
 
-## 💻 Panduan Instalasi Lokal
+## 💻 Panduan Instalasi (Docker)
+
+Aplikasi ini menggunakan Docker Compose untuk mempermudah konfigurasi server lokal.
 
 ### Persyaratan
-*   PHP >= 8.3
-*   Composer
-*   Node.js & NPM
-*   MySQL atau MariaDB
+*   Docker dan Docker Compose sudah terpasang di sistem Anda.
 
-### Langkah-Langkah
+### Langkah-Langkah Setup
 
-#### 1. Install Dependensi
+#### 1. Jalankan Container Docker
+Jalankan perintah berikut di direktori root project (tempat file `docker-compose.yml` berada):
 ```bash
-composer install
-npm install
+docker-compose up -d --build
+```
+Perintah ini akan secara otomatis:
+*   Membangun dan menjalankan container untuk **PHP-FPM**, **Nginx** (port 8010), dan **MySQL** (port 3310).
+*   Membuat file `.env` di dalam folder `marketplace_app` (jika belum ada) dan mengisi kredensial database secara otomatis dari variabel Docker.
+*   Mengunduh dependensi PHP via Composer.
+*   Menjalankan migrasi database otomatis.
+
+#### 2. Install & Build Aset Frontend (NPM)
+Gunakan perintah `docker-compose exec` untuk masuk ke container `app` dan mengompilasi aset frontend:
+```bash
+# Install dependensi frontend
+docker-compose exec app npm install
+
+# Build aset frontend untuk production
+docker-compose exec app npm run build
 ```
 
-#### 2. Konfigurasi Environment
-Salin berkas `.env.example` ke `.env`:
-```bash
-cp .env.example .env
-```
-Buka `.env` and atur database serta konfigurasi Midtrans Sandbox Anda:
+#### 3. Konfigurasi Pembayaran Midtrans
+Buka file `.env` di dalam folder `marketplace_app` dan masukkan Server Key & Client Key dari akun Midtrans Sandbox Anda:
 ```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=gaming_db
-DB_USERNAME=root
-DB_PASSWORD=your_password
-
-# Midtrans
 MIDTRANS_MERCHANT_ID=merchant_id_anda
 MIDTRANS_CLIENT_KEY=client_key_anda
 MIDTRANS_SERVER_KEY=server_key_anda
 MIDTRANS_IS_PRODUCTION=false
 ```
 
-#### 3. Migrasi Database & Data Awal (Seed)
+#### 4. Buat Akun Admin Pertama & Seed Kategori
+Untuk mengisi data awal game (Mobile Legends, Free Fire, dll) dan membuat satu akun admin default, jalankan perintah seeder di dalam container:
 ```bash
-php artisan key:generate
-php artisan migrate:fresh --seed
+docker-compose exec app php artisan db:seed --class=StoreSeeder
 ```
-*Seed data akan otomatis membuat kategori default dan satu akun admin:*
+*Setelah selesai, akun administrator default yang dapat Anda gunakan:*
 *   **Email Admin:** `admin@gmail.com`
 *   **Password:** `password`
 
-#### 4. Jalankan Server
-Jalankan kedua perintah ini di terminal terpisah:
-```bash
-# Terminal 1
-php artisan serve
-
-# Terminal 2
-npm run dev
-```
-Buka `http://127.0.0.1:8000` di browser Anda.
+#### 5. Akses Aplikasi
+*   **Storefront (Halaman Publik):** Buka `http://localhost:8010` di browser Anda.
+*   **Panel Admin:** Buka `http://localhost:8010/admin/login` untuk mengelola produk dan pesanan.
 
 ---
 
