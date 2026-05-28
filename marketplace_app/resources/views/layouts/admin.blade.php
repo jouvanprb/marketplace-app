@@ -160,7 +160,7 @@
             
             <a href="{{ route('admin.dashboard') }}" class="nav-link flex items-center px-4 py-2.5 {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <i class="fas fa-chart-line w-6 text-center"></i>
-                <span class="ml-2">Dashboard</span>
+                <span class="ml-2">Analytics</span>
             </a>
             
             <div class="px-5 py-2 text-[10px] font-semibold text-[#8f8f9d] uppercase tracking-widest mt-6 mb-1">

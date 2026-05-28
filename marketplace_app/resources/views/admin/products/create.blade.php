@@ -10,7 +10,7 @@
     <p class="text-sm text-zinc-400">Add a new item to your store</p>
 </div>
 
-<div class="card-admin p-6 sm:p-8 w-full">
+<div class="card-admin p-6 sm:p-8 w-full" x-data="{ type: '{{ old('type', request('type') ?? 'topup') }}' }">
     <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         
@@ -24,10 +24,10 @@
 
             <div>
                 <label for="type" class="block text-sm font-medium text-zinc-300 mb-2">Product Type</label>
-                <select name="type" id="type" required 
+                <select name="type" id="type" required x-model="type"
                         class="w-full bg-[#09090b] border border-zinc-800 rounded-md px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors appearance-none">
-                    <option value="topup" {{ old('type', request('type')) == 'topup' ? 'selected' : '' }}>Top Up</option>
-                    <option value="account" {{ old('type', request('type')) == 'account' ? 'selected' : '' }}>Beli Akun</option>
+                    <option value="topup">Top Up</option>
+                    <option value="account">Beli Akun</option>
                 </select>
                 @error('type')<p class="text-red-500 text-xs mt-1.5">{{ $message }}</p>@enderror
             </div>
@@ -65,7 +65,7 @@
                 @error('price')<p class="text-red-500 text-xs mt-1.5">{{ $message }}</p>@enderror
             </div>
 
-            <div>
+            <div x-show="type === 'account'" x-transition>
                 <label for="stock" class="block text-sm font-medium text-zinc-300 mb-2">Stock (Optional)</label>
                 <input type="number" name="stock" id="stock" value="{{ old('stock') }}" min="0"
                        class="w-full bg-[#09090b] border border-zinc-800 rounded-md px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">

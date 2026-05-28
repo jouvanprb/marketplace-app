@@ -3,6 +3,23 @@
 @section('header', 'Dashboard Overview')
 
 @section('content')
+<div class="mb-6 flex justify-between items-center">
+    <h2 class="text-base font-semibold text-white tracking-tight">Analytics Dashboard</h2>
+    <form action="" method="GET" id="rangeForm">
+        <div class="relative">
+            <select name="range" onchange="document.getElementById('rangeForm').submit()" class="w-40 bg-[#0a0a0a] border border-[#1f1f22] rounded-md pl-3.5 pr-8 py-1.5 text-xs text-[#ececf1] focus:outline-none focus:border-[#52525b] appearance-none cursor-pointer">
+                <option value="all" {{ request('range') == 'all' || !request('range') ? 'selected' : '' }}>All Time</option>
+                <option value="today" {{ request('range') == 'today' ? 'selected' : '' }}>Today</option>
+                <option value="this_week" {{ request('range') == 'this_week' ? 'selected' : '' }}>This Week</option>
+                <option value="this_month" {{ request('range') == 'this_month' ? 'selected' : '' }}>This Month</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
+                <i class="fas fa-chevron-down text-[9px]"></i>
+            </div>
+        </div>
+    </form>
+</div>
+
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <div class="card-admin p-5">
         <div class="flex items-center justify-between mb-4">
@@ -125,6 +142,20 @@
         const categoryLabels = categoriesData.map(item => item.name);
         const categoryData = categoriesData.map(item => item.total_sold);
 
+        // Consistent category-to-color mapping
+        const categoryColors = {
+            'Mobile Legends': '#ea580c', // Orange
+            'PUBG Mobile': '#eab308',    // Yellow
+            'Valorant': '#ef4444',       // Red
+            'Free Fire': '#10b981',      // Emerald Green
+            'Genshin Impact': '#3b82f6',  // Blue
+        };
+        const defaultColor = '#8f8f9d'; // Gray
+
+        // Generate matching colors
+        const productColors = productsData.map(item => categoryColors[item.category_name] || defaultColor);
+        const categoryColorsArray = categoryLabels.map(name => categoryColors[name] || defaultColor);
+
         // Common Chart.js options for dark minimalist theme
         Chart.defaults.color = '#8f8f9d';
         Chart.defaults.font.family = 'Inter, sans-serif';
@@ -140,7 +171,7 @@
                     borderColor: '#1f1f22',
                     borderWidth: 1,
                     padding: 10,
-                    displayColors: false,
+                    displayColors: true,
                 }
             },
             scales: {
@@ -165,7 +196,7 @@
                 datasets: [{
                     label: 'Total Sold',
                     data: productData,
-                    backgroundColor: '#ea580c', // Orange accent
+                    backgroundColor: productColors,
                     borderRadius: 4,
                     barThickness: 20
                 }]
@@ -180,9 +211,7 @@
                 labels: categoryLabels,
                 datasets: [{
                     data: categoryData,
-                    backgroundColor: [
-                        '#ea580c', '#3b82f6', '#10b981', '#8b5cf6', '#eab308'
-                    ],
+                    backgroundColor: categoryColorsArray,
                     borderWidth: 2,
                     borderColor: '#0a0a0a'
                 }]
@@ -195,7 +224,10 @@
                         position: 'right',
                         labels: { color: '#8f8f9d', padding: 20, font: { size: 11 } }
                     },
-                    tooltip: chartOptions.plugins.tooltip
+                    tooltip: {
+                        ...chartOptions.plugins.tooltip,
+                        displayColors: true
+                    }
                 },
                 cutout: '70%'
             }

@@ -45,6 +45,10 @@ class ProductController extends Controller
 
         $data = $request->except('image');
 
+        if ($data['type'] === 'topup') {
+            $data['stock'] = null;
+        }
+
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('products', 'public');
         }
@@ -84,6 +88,10 @@ class ProductController extends Controller
         ]);
 
         $data = $request->except('image');
+
+        if ($data['type'] === 'topup') {
+            $data['stock'] = null;
+        }
 
         if ($request->hasFile('image')) {
             // Delete old image
