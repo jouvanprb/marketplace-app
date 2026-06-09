@@ -117,6 +117,21 @@ class CheckoutController extends Controller
     }
 
     /**
+     * Cancel pending order manually
+     */
+    public function cancel($order_code)
+    {
+        $order = Order::where('order_code', $order_code)->firstOrFail();
+        
+        if ($order->status === 'pending') {
+            $order->update(['status' => 'failed']);
+            return redirect()->route('order.receipt', ['order_code' => $order_code])->with('success', 'Transaction was successfully cancelled.');
+        }
+
+        return redirect()->route('order.receipt', ['order_code' => $order_code])->with('error', 'Transaction cannot be cancelled or has already been processed.');
+    }
+
+    /**
      * Handle Midtrans asynchronous notification (Webhook)
      */
     public function notification(Request $request)
