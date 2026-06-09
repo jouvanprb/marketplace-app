@@ -62,6 +62,20 @@
                 @endguest
             </div>
 
+            <!-- Global Session Alerts -->
+            @if(session('success'))
+                <div class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-semibold rounded-2xl flex items-center">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2.5 animate-pulse"></span>
+                    {{ session('success') }}
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-450 text-sm font-semibold rounded-2xl flex items-center">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-2.5 animate-pulse"></span>
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <!-- Orders Table Card -->
             <div class="card-glass rounded-3xl border border-white/5 shadow-2xl overflow-hidden relative">
                 <div class="overflow-x-auto">
@@ -113,10 +127,33 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-right whitespace-nowrap">
-                                        <a href="{{ route('order.receipt', ['order_code' => $order->order_code]) }}" 
-                                           class="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-200 text-zinc-950 font-bold px-3 py-1.5 rounded-lg text-[10px] transition-all cursor-pointer shadow-md">
-                                            <i class="fas fa-file-invoice text-[9px]"></i> View Receipt
-                                        </a>
+                                        <div class="flex items-center justify-end gap-2">
+                                            @if($order->status === 'pending' && $order->payment_token)
+                                                <button onclick="payPending('{{ $order->payment_token }}')"
+                                                        class="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold px-3 py-1.5 rounded-lg text-[10px] transition-all cursor-pointer shadow-md">
+                                                    <i class="fas fa-wallet text-[9px]"></i> Complete Payment
+                                                </button>
+                                                
+                                                <form action="{{ route('payment.cancel', ['order_code' => $order->order_code]) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to cancel this order?')">
+                                                    @csrf
+                                                    <button type="submit" class="inline-flex items-center gap-1.5 bg-red-650/15 hover:bg-red-650 text-red-400 hover:text-white border border-red-500/25 font-bold px-3 py-1.5 rounded-lg text-[10px] transition-all cursor-pointer shadow-md">
+                                                        <i class="fas fa-times text-[9px]"></i> Cancel Order
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            
+                                            <a href="{{ route('order.receipt', ['order_code' => $order->order_code]) }}" 
+                                               class="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-200 text-zinc-950 font-bold px-3 py-1.5 rounded-lg text-[10px] transition-all cursor-pointer shadow-md">
+                                                <i class="fas fa-file-invoice text-[9px]"></i>
+                                                @if($order->status === 'paid')
+                                                    View Receipt
+                                                @elseif($order->status === 'pending')
+                                                    View Invoice
+                                                @else
+                                                    View Details
+                                                @endif
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -190,4 +227,29 @@
     @endif
 
 </div>
+
+<!-- Load Midtrans Snap JS & Script Lanjutan Pembayaran -->
+<script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
+<script type="text/javascript">
+    function payPending(snapToken) {
+        if (!snapToken) {
+            alert('Payment token not found.');
+            return;
+        }
+        window.snap.pay(snapToken, {
+            onSuccess: function(result) {
+                window.location.href = "{{ route('payment.finish') }}?order_id=" + result.order_id + "&payment_type=" + result.payment_type;
+            },
+            onPending: function(result) {
+                window.location.href = "{{ route('payment.unfinish') }}?order_id=" + result.order_id;
+            },
+            onError: function(result) {
+                window.location.href = "{{ route('payment.error') }}?order_id=" + result.order_id;
+            },
+            onClose: function() {
+                console.log('customer closed the popup without finishing the payment');
+            }
+        });
+    }
+</script>
 @endsection

@@ -55,9 +55,17 @@
             <button id="pay-button" class="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-bold py-4 rounded-xl transition-all btn-glow text-center text-lg shadow-lg shadow-orange-500/25">
                 Pay Now
             </button>
+            
             <a href="{{ route('home') }}" class="block w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-semibold py-3.5 rounded-xl transition-all border border-zinc-800 text-sm">
-                Cancel & Return Home
+                <i class="fas fa-clock mr-1"></i> Pay Later (Return Home)
             </a>
+
+            <form action="{{ route('payment.cancel', ['order_code' => $order->order_code]) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently cancel this transaction?')">
+                @csrf
+                <button type="submit" class="block w-full bg-red-900/20 hover:bg-red-900/40 text-red-400 font-semibold py-3.5 rounded-xl transition-all border border-red-900/30 text-sm mt-4 cursor-pointer">
+                    <i class="fas fa-times mr-1"></i> Cancel Transaction
+                </button>
+            </form>
         </div>
     </div>
 </div>

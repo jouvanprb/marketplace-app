@@ -49,7 +49,7 @@ class MidtransService
             ],
             'expiry' => [
                 'start_time' => date('Y-m-d H:i:s O'),
-                'duration' => 15,
+                'duration' => 5,
                 'unit' => 'minute',
             ],
             'callbacks' => [

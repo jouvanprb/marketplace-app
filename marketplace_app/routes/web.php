@@ -79,5 +79,6 @@ Route::post('/checkout/{product}', [CheckoutController::class, 'store'])->name('
 Route::get('/payment/finish', [CheckoutController::class, 'finish'])->name('payment.finish');
 Route::get('/payment/unfinish', [CheckoutController::class, 'unfinish'])->name('payment.unfinish');
 Route::get('/payment/error', [CheckoutController::class, 'error'])->name('payment.error');
+Route::post('/payment/cancel/{order_code}', [CheckoutController::class, 'cancel'])->name('payment.cancel');
 Route::post('/payment/notification', [CheckoutController::class, 'notification'])->name('payment.notification');
 Route::get('/order/receipt/{order_code}', [CheckoutController::class, 'receipt'])->name('order.receipt');
