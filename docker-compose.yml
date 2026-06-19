@@ -12,7 +12,7 @@ services:
       DB_HOST: mysql
       DB_DATABASE: marketplace_db
       DB_USERNAME: marketplace
-      DB_PASSWORD: secret
+      DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       - mysql
     networks:
@@ -37,10 +37,10 @@ services:
     image: mysql:8
     container_name: marketplace_mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: marketplace_db
-      MYSQL_USER: marketplace
-      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3310:3306" 
     volumes:
