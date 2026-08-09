@@ -2,49 +2,37 @@ pipeline {
     agent any
 
     environment {
-        ANSIBLE_CREDENTIALS_ID = 'aws-ec2-key'
+        SSH_CRED = 'ec2-ssh-key' // ID Credentials SSH Key Anda
+        SSH_USER = 'ec2-user'
     }
 
     stages {
         stage('Checkout SCM') {
             steps {
-                echo 'Fetching source code and deployment playbooks from GitHub...'
                 checkout scm
             }
         }
 
         stage('Automated Testing & Syntax Check') {
             steps {
-                echo 'Validating Ansible Playbook syntax...'
                 sh 'ansible-playbook --syntax-check ansible/playbooks/deploy.yml'
             }
         }
 
         stage('Run Ansible Deployment') {
             steps {
-                withCredentials([sshUserPrivateKey(
-                    credentialsId: "${ANSIBLE_CREDENTIALS_ID}",
-                    keyFileVariable: 'SSH_KEY',
-                    usernameVariable: 'SSH_USER'
-                )]) {
-                    echo 'Deploying application to AWS EC2 via Ansible...'
+                withCredentials([
+                    sshUserPrivateKey(credentialsId: env.SSH_CRED, keyFileVariable: 'SSH_KEY'),
+                    string(credentialsId: 'db-password', variable: 'DB_PASS')
+                ]) {
                     sh '''
                         ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/deploy.yml \
-                        --private-key "${SSH_KEY}" \
-                        -u "${SSH_USER}" \
-                        --ssh-common-args='-o StrictHostKeyChecking=no'
+                        --private-key "${SSH_KEY}" -u "${SSH_USER}" \
+                        --ssh-common-args='-o StrictHostKeyChecking=no' \
+                        -e "db_password=${DB_PASS}"
                     '''
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ Deployment finished successfully!'
-        }
-        failure {
-            echo '❌ Deployment failed! Check the log details above.'
         }
     }
 }

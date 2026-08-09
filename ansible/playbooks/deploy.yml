@@ -2,36 +2,29 @@
 - name: Provision and Deploy Marketplace Game to AWS EC2 (Amazon Linux 2)
   hosts: aws_ec2
   become: yes  # Menjalankan perintah sebagai root/sudo
-  
-  # Environment Variables yang dibutuhkan Docker Compose
-  # Pastikan credentialsId 'marketplace-db-creds' sudah dibuat di Jenkins
+
   vars:
-    project_path: "/home/ec2-user/marketplace-game"
-    # Mengambil value credentials dari Jenkins environment vars
-    mysql_root_password: "{{ lookup('env', 'DB_ROOT_PASSWORD') }}"
-    mysql_database: "{{ lookup('env', 'DB_DATABASE') }}"
-    mysql_user: "{{ lookup('env', 'DB_USER') }}"
-    mysql_password: "{{ lookup('env', 'DB_PASSWORD') }}"
+    # Path folder proyek disatukan di sini agar konsisten
+    project_path: "/home/ec2-user/marketplace-app"
+    
+    # Mengambil value dari Jenkins extra-vars / env vars (fallback ke default aman)
+    mysql_root_password: "{{ db_root_password | default('secret_password') }}"
+    mysql_database: "{{ db_database | default('marketplace_db') }}"
+    mysql_user: "{{ db_user | default('marketplace_user') }}"
+    mysql_password: "{{ db_password | default('secret_password') }}"
 
   tasks:
-    # --- STAGE 1: PROVISIONING (Setup Server Dasar) ---
+    # --- STAGE 1: PROVISIONING & SYSTEM PACKAGES ---
     - name: Update yum package cache
-      yum:
+      ansible.builtin.yum:
         update_cache: yes
 
-    - name: Install required system packages (Git)
-      yum:
+    - name: Install required system packages (Git & Docker)
+      ansible.builtin.yum:
         name:
           - git
+          - docker
         state: present
-
-    # --- STAGE 2: CONFIGURATION MANAGEMENT (Install Docker & Compose) ---
-    # Langkah instalasi Docker khusus Amazon Linux 2
-    - name: Install Docker Engine
-      ansible.builtin.dnf:
-        name: docker
-        state: present
-        update_cache: yes
 
     - name: Ensure Docker service is started and enabled
       ansible.builtin.service:
@@ -39,64 +32,63 @@
         state: started
         enabled: yes
 
-    - name: Install Docker packages via yum
-      yum:
-        name: docker
-        state: present
-
-    - name: Start and enable Docker service
-      service:
-        name: docker
-        state: started
-        enabled: yes
-
-    # Menginstal Docker Compose v2 (binary terpisah)
-    - name: Install Docker Compose v2
-      get_url:
+    - name: Install Docker Compose v2 binary
+      ansible.builtin.get_url:
         url: "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-linux-x86_64"
         dest: /usr/local/bin/docker-compose
-        mode: '+x'  # Memberikan izin eksekusi (executable)
+        mode: '0755'
 
-    # Memastikan user 'ec2-user' bisa menjalankan perintah docker tanpa sudo
     - name: Add ec2-user to docker group
-      user:
+      ansible.builtin.user:
         name: ec2-user
         groups: docker
         append: yes
 
-    # --- STAGE 3: APPLICATION DEPLOYMENT ---
-    # Langkah ini menarik kode terbaru dari GitHub langsung ke server EC2
+    # --- STAGE 2: REPOSITORY & PERMISSIONS ---
     - name: Clone or Pull latest project repository from GitHub
-      git:
-        # URL REPO GITHUB
+      ansible.builtin.git:
         repo: 'https://github.com/jouvanprb/marketplace-app'
         dest: "{{ project_path }}"
-        version: main # Branch utama
-        force: yes # Memaksa overwrite jika ada konflik lokal di server
+        version: main
+        force: yes
 
-    - name: Ensure .env file exists on host
+    - name: Ensure correct ownership for project directory
+      ansible.builtin.file:
+        path: "{{ project_path }}"
+        owner: ec2-user
+        group: ec2-user
+        recurse: yes
+
+    # --- STAGE 3: SECURE DYNAMIC .ENV GENERATION ---
+    # Membuat file .env fisik secara otomatis dari variabel 
+    - name: Generate production .env file dynamically
       ansible.builtin.copy:
-        src: "/home/ec2-user/marketplace-app/.env.example"
-        dest: "/home/ec2-user/marketplace-app/.env"
-        remote_src: yes
-        force: no
-        
-    # Menjalankan aplikasi menggunakan Docker Compose
-    # Kita menggunakan modul 'shell' karena docker-compose v2 binary
+        dest: "{{ project_path }}/.env"
+        content: |
+          APP_NAME=Marketplace
+          APP_ENV=production
+          APP_KEY=
+          APP_DEBUG=false
+          APP_URL=http://localhost
+
+          DB_CONNECTION=mysql
+          DB_HOST=db
+          DB_PORT=3306
+          DB_DATABASE={{ mysql_database }}
+          DB_USERNAME={{ mysql_user }}
+          DB_PASSWORD={{ mysql_password }}
+        owner: ec2-user
+        group: ec2-user
+        mode: '0600' # Keamanan: Hanya ec2-user yang bisa membaca file ini
+
+    # --- STAGE 4: DOCKER DEPLOYMENT ---
     - name: Run Docker Compose up to build and start containers
-      shell: |
-        # Reset environment vars agar fresh
-        export MYSQL_ROOT_PASSWORD="{{ mysql_root_password }}"
-        export MYSQL_DATABASE="{{ mysql_database }}"
-        export MYSQL_USER="{{ mysql_user }}"
-        export MYSQL_PASSWORD="{{ mysql_password }}"
-        
-        # Jalankan docker-compose
+      ansible.builtin.shell: |
         /usr/local/bin/docker-compose -f {{ project_path }}/docker-compose.yml up -d --build
       args:
         executable: /bin/bash
       register: compose_output
 
     - name: Show Docker Compose output
-      debug:
+      ansible.builtin.debug:
         var: compose_output.stdout_lines
