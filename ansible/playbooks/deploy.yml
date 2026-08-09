@@ -1,0 +1,88 @@
+---
+- name: Provision and Deploy Marketplace Game to AWS EC2 (Amazon Linux 2)
+  hosts: aws_ec2
+  become: yes  # Menjalankan perintah sebagai root/sudo
+  
+  # Environment Variables yang dibutuhkan Docker Compose
+  # Pastikan credentialsId 'marketplace-db-creds' sudah dibuat di Jenkins
+  vars:
+    project_path: "/home/ec2-user/marketplace-game"
+    # Mengambil value credentials dari Jenkins environment vars
+    mysql_root_password: "{{ lookup('env', 'DB_ROOT_PASSWORD') }}"
+    mysql_database: "{{ lookup('env', 'DB_DATABASE') }}"
+    mysql_user: "{{ lookup('env', 'DB_USER') }}"
+    mysql_password: "{{ lookup('env', 'DB_PASSWORD') }}"
+
+  tasks:
+    # --- STAGE 1: PROVISIONING (Setup Server Dasar) ---
+    - name: Update yum package cache
+      yum:
+        update_cache: yes
+
+    - name: Install required system packages (Git)
+      yum:
+        name:
+          - git
+        state: present
+
+    # --- STAGE 2: CONFIGURATION MANAGEMENT (Install Docker & Compose) ---
+    # Langkah instalasi Docker khusus Amazon Linux 2
+    - name: Install Docker Engine
+      amazon.linux.amazon_linux_extras:
+        name: docker
+        state: enabled
+
+    - name: Install Docker packages via yum
+      yum:
+        name: docker
+        state: present
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # Menginstal Docker Compose v2 (binary terpisah)
+    - name: Install Docker Compose v2
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: '+x'  # Memberikan izin eksekusi (executable)
+
+    # Memastikan user 'ec2-user' bisa menjalankan perintah docker tanpa sudo
+    - name: Add ec2-user to docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: yes
+
+    # --- STAGE 3: APPLICATION DEPLOYMENT ---
+    # Langkah ini menarik kode terbaru dari GitHub langsung ke server EC2
+    - name: Clone or Pull latest project repository from GitHub
+      git:
+        # GANTI INI DENGAN URL REPO GITHUB ANDA
+        repo: 'https://github.com/USERNAME_GITHUB_ANDA/marketplace-game.git'
+        dest: "{{ project_path }}"
+        version: main # Branch utama
+        force: yes # Memaksa overwrite jika ada konflik lokal di server
+
+    # Menjalankan aplikasi menggunakan Docker Compose
+    # Kita menggunakan modul 'shell' karena docker-compose v2 binary
+    - name: Run Docker Compose up to build and start containers
+      shell: |
+        # Reset environment vars agar fresh
+        export MYSQL_ROOT_PASSWORD="{{ mysql_root_password }}"
+        export MYSQL_DATABASE="{{ mysql_database }}"
+        export MYSQL_USER="{{ mysql_user }}"
+        export MYSQL_PASSWORD="{{ mysql_password }}"
+        
+        # Jalankan docker-compose
+        /usr/local/bin/docker-compose -f {{ project_path }}/docker-compose.yml up -d --build
+      args:
+        executable: /bin/bash
+      register: compose_output
+
+    - name: Show Docker Compose output
+      debug:
+        var: compose_output.stdout_lines
