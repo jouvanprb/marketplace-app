@@ -61,8 +61,8 @@
     # Langkah ini menarik kode terbaru dari GitHub langsung ke server EC2
     - name: Clone or Pull latest project repository from GitHub
       git:
-        # GANTI INI DENGAN URL REPO GITHUB ANDA
-        repo: 'https://github.com/USERNAME_GITHUB_ANDA/marketplace-game.git'
+        # URL REPO GITHUB
+        repo: 'https://github.com/jouvanprb/marketplace-app'
         dest: "{{ project_path }}"
         version: main # Branch utama
         force: yes # Memaksa overwrite jika ada konflik lokal di server
