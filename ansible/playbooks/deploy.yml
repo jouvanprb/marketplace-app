@@ -74,6 +74,13 @@
         version: main # Branch utama
         force: yes # Memaksa overwrite jika ada konflik lokal di server
 
+    - name: Ensure .env file exists on host
+      ansible.builtin.copy:
+        src: "/home/ec2-user/marketplace-app/.env.example"
+        dest: "/home/ec2-user/marketplace-app/.env"
+        remote_src: yes
+        force: no
+        
     # Menjalankan aplikasi menggunakan Docker Compose
     # Kita menggunakan modul 'shell' karena docker-compose v2 binary
     - name: Run Docker Compose up to build and start containers
