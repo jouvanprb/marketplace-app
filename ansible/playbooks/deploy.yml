@@ -28,7 +28,16 @@
     # --- STAGE 2: CONFIGURATION MANAGEMENT (Install Docker & Compose) ---
     # Langkah instalasi Docker khusus Amazon Linux 2
     - name: Install Docker Engine
-      ansible.builtin.command: amazon-linux-extras install docker -y
+      ansible.builtin.dnf:
+        name: docker
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker service is started and enabled
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
 
     - name: Install Docker packages via yum
       yum:
