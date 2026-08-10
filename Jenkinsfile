@@ -24,6 +24,7 @@ pipeline {
                 withCredentials([
                     sshUserPrivateKey(credentialsId: env.SSH_CRED, keyFileVariable: 'SSH_KEY'),
                     string(credentialsId: 'db-password', variable: 'DB_PASS')
+                    string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'DB_ROOT_PASS')
                 ]) {
                     sh '''
                         ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/deploy.yml \
