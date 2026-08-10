@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # PHP-FPM Service
   app:
@@ -5,13 +7,14 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: marketplace-app
+    restart: always
     volumes:
       - ./marketplace_app:/var/www/html
     environment:
       DB_CONNECTION: mysql
       DB_HOST: mysql
-      DB_DATABASE: marketplace_db
-      DB_USERNAME: marketplace
+      DB_DATABASE: ${DB_DATABASE:-marketplace_db}
+      DB_USERNAME: ${DB_USERNAME:-marketplace_user}
       DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       - mysql
@@ -22,8 +25,9 @@ services:
   nginx:
     image: nginx:alpine
     container_name: marketplace-nginx
+    restart: always
     ports:
-      - "8010:80"
+      - "80:80"
     volumes:
       - ./marketplace_app:/var/www/html
       - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
@@ -36,11 +40,12 @@ services:
   mysql:
     image: mysql:8
     container_name: marketplace_mysql
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}  
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3310:3306" 
     volumes:
