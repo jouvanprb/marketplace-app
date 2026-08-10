@@ -27,11 +27,15 @@ mkdir -p storage/logs storage/framework/{cache,sessions,views} bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
-# 5. WAITING FOR MYSQL (Menunggu Database Siap Sebelum Migrasi)
+# 5. WAITING FOR MYSQL (Menunggu Database Siap Menggunakan PDO)
 echo "Waiting for MySQL database connection..."
 until php -r "
-    \$mysqli = @new mysqli('${DB_HOST:-mysql}', '${DB_USERNAME:-marketplace_user}', '${DB_PASSWORD:-secret_password}', '${DB_DATABASE:-marketplace_db}', ${DB_PORT:-3306});
-    if (\$mysqli->connect_error) { exit(1); }
+    try {
+        \$pdo = new PDO('mysql:host=${DB_HOST:-mysql};port=${DB_PORT:-3306}', '${DB_USERNAME:-marketplace_user}', '${DB_PASSWORD:-secret_password}');
+        exit(0);
+    } catch (Exception \$e) {
+        exit(1);
+    }
 " 2>/dev/null; do
     echo "MySQL is not ready yet - sleeping 3 seconds..."
     sleep 3
