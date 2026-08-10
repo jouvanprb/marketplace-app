@@ -62,7 +62,7 @@
     # --- STAGE 3: SECURE DYNAMIC .ENV GENERATION ---
     - name: Generate production .env file dynamically
       ansible.builtin.copy:
-        dest: "{{ project_path }}/.env"
+        dest: "{{ project_path }}/marketplace_app/.env"
         content: |
           APP_NAME=Marketplace
           APP_ENV=production
