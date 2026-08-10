@@ -60,9 +60,9 @@
         recurse: yes
 
     # --- STAGE 3: SECURE DYNAMIC .ENV GENERATION ---
-    - name: Generate production .env file dynamically
+    - name: Generate production .env file in project root
       ansible.builtin.copy:
-        dest: "{{ project_path }}/marketplace_app/.env"
+        dest: "{{ project_path }}/.env"
         content: |
           APP_NAME=Marketplace
           APP_ENV=production
@@ -79,7 +79,16 @@
           DB_ROOT_PASSWORD={{ mysql_root_password }}
         owner: ec2-user
         group: ec2-user
-        mode: '0600' # Keamanan: Hanya ec2-user yang bisa membaca file ini
+        mode: '0600'
+
+    - name: Copy .env file to marketplace_app subfolder for Laravel
+      ansible.builtin.copy:
+        src: "{{ project_path }}/.env"
+        dest: "{{ project_path }}/marketplace_app/.env"
+        remote_src: yes
+        owner: ec2-user
+        group: ec2-user
+        mode: '0600'
 
     # --- STAGE 4: DOCKER DEPLOYMENT ---
     - name: Run Docker Compose up to build and start containers
