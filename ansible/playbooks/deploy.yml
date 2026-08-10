@@ -1,5 +1,5 @@
 ---
-- name: Provision and Deploy Marketplace Game to AWS EC2 (Amazon Linux 2)
+- name: Provision and Deploy Marketplace App to AWS EC2 (Amazon Linux 2)
   hosts: aws_ec2
   become: yes  # Menjalankan perintah sebagai root/sudo
 
@@ -7,8 +7,8 @@
     # Path folder proyek disatukan di sini agar konsisten
     project_path: "/home/ec2-user/marketplace-app"
     
-    # Mengambil value dari Jenkins extra-vars / env vars (fallback ke default aman)
-    mysql_root_password: "{{ db_root_password | default('secret_password') }}"
+    # Mengambil value dari Jenkins extra-vars / env vars (dengan fallback default aman)
+    mysql_root_password: "{{ db_root_password | default('secret_root_password') }}"
     mysql_database: "{{ db_database | default('marketplace_db') }}"
     mysql_user: "{{ db_user | default('marketplace_user') }}"
     mysql_password: "{{ db_password | default('secret_password') }}"
@@ -60,7 +60,6 @@
         recurse: yes
 
     # --- STAGE 3: SECURE DYNAMIC .ENV GENERATION ---
-    # Membuat file .env fisik secara otomatis dari variabel 
     - name: Generate production .env file dynamically
       ansible.builtin.copy:
         dest: "{{ project_path }}/.env"
@@ -72,11 +71,12 @@
           APP_URL=http://localhost
 
           DB_CONNECTION=mysql
-          DB_HOST=db
+          DB_HOST=mysql
           DB_PORT=3306
           DB_DATABASE={{ mysql_database }}
           DB_USERNAME={{ mysql_user }}
           DB_PASSWORD={{ mysql_password }}
+          DB_ROOT_PASSWORD={{ mysql_root_password }}
         owner: ec2-user
         group: ec2-user
         mode: '0600' # Keamanan: Hanya ec2-user yang bisa membaca file ini
