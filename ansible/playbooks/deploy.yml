@@ -59,15 +59,19 @@
         group: ec2-user
         recurse: yes
 
-    # --- STAGE 3: SECURE DYNAMIC .ENV GENERATION ---
+# --- STAGE 3: SECURE DYNAMIC .ENV GENERATION ---
+    - name: Generate random base64 key for APP_KEY
+      ansible.builtin.shell: "echo 'base64:'$(openssl rand -base64 32)"
+      register: app_key_generated
+
     - name: Generate production .env file in project root
       ansible.builtin.copy:
         dest: "{{ project_path }}/.env"
         content: |
           APP_NAME=Marketplace
           APP_ENV=production
-          APP_KEY=
-          APP_DEBUG=false
+          APP_KEY={{ app_key_generated.stdout }}
+          APP_DEBUG=true
           APP_URL=http://localhost
 
           DB_CONNECTION=mysql
