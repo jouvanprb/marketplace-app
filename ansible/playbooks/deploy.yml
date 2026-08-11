@@ -4,14 +4,14 @@
   become: yes  # Menjalankan perintah sebagai root/sudo
 
   vars:
-    # Path folder proyek disatukan di sini agar konsisten
+    # Path folder proyek 
     project_path: "/home/ec2-user/marketplace-app"
-    
-    # Mengambil value dari Jenkins extra-vars / env vars (dengan fallback default aman)
-    mysql_root_password: "{{ db_root_password | default('secret_root_password') }}"
-    mysql_database: "{{ db_database | default('marketplace_db') }}"
-    mysql_user: "{{ db_user | default('marketplace_user') }}"
-    mysql_password: "{{ db_password | default('secret_password') }}"
+    # Ambil dari environment Jenkins, tanpa default untuk password
+    mysql_root_password: "{{ lookup('env','DB_ROOT_PASSWORD') }}"
+    mysql_database: "{{ lookup('env','DB_DATABASE') | default('marketplace_db', true) }}"
+    mysql_user: "{{ lookup('env','DB_USERNAME') | default('marketplace_user', true) }}"
+    mysql_password: "{{ lookup('env','DB_PASSWORD') }}"
+    app_url: "{{ lookup('env','APP_URL') | default('http://localhost', true) }}"
 
   tasks:
     # --- STAGE 1: PROVISIONING & SYSTEM PACKAGES ---
@@ -64,15 +64,15 @@
       ansible.builtin.shell: "echo 'base64:'$(openssl rand -base64 32)"
       register: app_key_generated
 
-    - name: Generate production .env file in project root
+    - name: Generate production .env file
       ansible.builtin.copy:
         dest: "{{ project_path }}/.env"
         content: |
           APP_NAME=Marketplace
           APP_ENV=production
           APP_KEY={{ app_key_generated.stdout }}
-          APP_DEBUG=true
-          APP_URL=http://localhost
+          APP_DEBUG=false
+          APP_URL={{ app_url }}
 
           DB_CONNECTION=mysql
           DB_HOST=mysql
@@ -81,15 +81,6 @@
           DB_USERNAME={{ mysql_user }}
           DB_PASSWORD={{ mysql_password }}
           DB_ROOT_PASSWORD={{ mysql_root_password }}
-        owner: ec2-user
-        group: ec2-user
-        mode: '0600'
-
-    - name: Copy .env file to marketplace_app subfolder for Laravel
-      ansible.builtin.copy:
-        src: "{{ project_path }}/.env"
-        dest: "{{ project_path }}/marketplace_app/.env"
-        remote_src: yes
         owner: ec2-user
         group: ec2-user
         mode: '0600'
