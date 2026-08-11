@@ -23,8 +23,8 @@ pipeline {
             steps {
                 withCredentials([
                     sshUserPrivateKey(credentialsId: env.SSH_CRED, keyFileVariable: 'SSH_KEY'),
-                    string(credentialsId: 'db-password', variable: 'DB_PASSWORD'),
-                    string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'DB_ROOT_PASSWORD')
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'DB_ROOT_PASSWORD', variable: 'DB_ROOT_PASSWORD')
                 ]) {
                     sh '''
                         ansible-playbook ... \
