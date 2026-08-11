@@ -23,14 +23,12 @@ pipeline {
             steps {
                 withCredentials([
                     sshUserPrivateKey(credentialsId: env.SSH_CRED, keyFileVariable: 'SSH_KEY'),
-                    string(credentialsId: 'db-password', variable: 'DB_PASS'),
-                    string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'DB_ROOT_PASS') // <--- Tambah koma di baris atas
+                    string(credentialsId: 'db-password', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'DB_ROOT_PASSWORD')
                 ]) {
                     sh '''
-                        ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/deploy.yml \
-                        --private-key "${SSH_KEY}" -u "${SSH_USER}" \
-                        --ssh-common-args='-o StrictHostKeyChecking=no' \
-                        -e "db_password=${DB_PASS} db_root_password=${DB_ROOT_PASS}"
+                        ansible-playbook ... \
+                        -e "db_password=${DB_PASSWORD} db_root_password=${DB_ROOT_PASSWORD}"
                     '''
                 }
             }
