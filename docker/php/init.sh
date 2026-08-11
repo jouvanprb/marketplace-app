@@ -9,6 +9,12 @@ if [ ! -d "vendor" ] && [ -f "composer.json" ]; then
     composer install --optimize-autoloader --no-interaction --no-dev
 fi
 
+if [ -f "package.json" ]; then
+    echo "Installing & building frontend assets..."
+    npm ci --no-audit --no-fund
+    npm run build
+fi
+
 # 2. Pastikan file .env tersedia
 if [ ! -f .env ]; then
     echo "Creating .env from .env.example..."
