@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SSH_CRED = 'ec2-ssh-key' // ID Credentials SSH Key Anda
+        SSH_CRED = 'ec2-ssh-key'
         SSH_USER = 'ec2-user'
     }
 
@@ -27,7 +27,9 @@ pipeline {
                     string(credentialsId: 'DB_ROOT_PASSWORD', variable: 'DB_ROOT_PASSWORD')
                 ]) {
                     sh '''
-                        ansible-playbook ... \
+                        ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/deploy.yml \
+                        --private-key "${SSH_KEY}" -u "${SSH_USER}" \
+                        --ssh-common-args='-o StrictHostKeyChecking=no' \
                         -e "db_password=${DB_PASSWORD} db_root_password=${DB_ROOT_PASSWORD}"
                     '''
                 }
